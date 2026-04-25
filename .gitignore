@@ -151,3 +151,5 @@ build/
 # Firebase
 .firebase/
 firebase-debug.log
+
+firebase-secret.json
