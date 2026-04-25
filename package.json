@@ -1,0 +1,14 @@
+{
+  "name": "emo-rescue-os",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=packages/backend-engine",
+    "dev:victim": "npm run dev --workspace=apps/victim-ui",
+    "dev:admin": "npm run dev --workspace=apps/admin-dashboard"
+  }
+}

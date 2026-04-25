@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+# Next.js
+.next/
+out/
+build/
+
+# Firebase
+.firebase/
+firebase-debug.log
