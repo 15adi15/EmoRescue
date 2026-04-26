@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../server';
 import { IngestionPayload, CrisisIncident, RoomInventory } from '@emo-rescue/shared-types';
-import { generateSurvivalPlan } from '../services/aiService';
+import { generateSurvivalPlan, extractAudioContext } from '../services/aiService';
 import { calculateEvacuationRoute } from '../services/routingService';
 
 // Mock PMS Data representing the hotel's property management system
@@ -38,9 +38,12 @@ export const createIncident = async (req: Request, res: Response) => {
         // Otherwise, it's blocking Hallway_East.
         const hazardNode = payload.roomNumber === 'Room_412' ? 'Hallway_West' : 'Hallway_East';
 
-        // 3. AI Extraction (Mocking audio translation context for now)
-        // In the full implementation, we'd send the audioBlobUrl to Gemini 1.5 Pro to extract context
-        const aiTranslatedContext = `Raw threat detected: ${payload.hazardCategory} reported near ${payload.roomNumber}. Possible obstruction at ${hazardNode}.`;
+        // 3. AI Extraction
+        let aiTranslatedContext = `Raw threat detected: ${payload.hazardCategory} reported near ${payload.roomNumber}. Possible obstruction at ${hazardNode}.`;
+        
+        if (payload.audioBlobUrl) {
+            aiTranslatedContext = await extractAudioContext(payload.hazardCategory, payload.audioBlobUrl);
+        }
 
         // 4. Calculate BFS Route
         const safeEvacuationRoute = calculateEvacuationRoute(payload.roomNumber, hazardNode);

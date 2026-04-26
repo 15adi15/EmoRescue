@@ -1,13 +1,23 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebaseClient';
 import { CrisisIncident } from '@emo-rescue/shared-types';
 import { AlertTriangle, Flame, Stethoscope, Skull, ShieldAlert, Activity, CheckCircle2 } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [incidents, setIncidents] = useState<CrisisIncident[]>([]);
+
+    const handleDispatch = async (incidentId: string) => {
+        try {
+            await updateDoc(doc(db, 'incidents', incidentId), {
+                status: 'RESCUE_DISPATCHED'
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    };
     
     // Establishing real-time connection to our Firebase Backend Engine
     useEffect(() => {
@@ -170,6 +180,19 @@ export default function AdminDashboard() {
                                             <p className="font-medium text-amber-400">"{incident.aiSurvivalPlan}"</p>
                                         </div>
                                     </div>
+
+                                    {incident.status !== 'RESCUE_DISPATCHED' ? (
+                                        <button 
+                                            onClick={() => handleDispatch(incident.incidentId)} 
+                                            className="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)] tracking-wider"
+                                        >
+                                            DISPATCH RESCUE
+                                        </button>
+                                    ) : (
+                                        <div className="mt-4 w-full bg-emerald-900/40 text-emerald-400 font-bold py-3 rounded-lg text-center border border-emerald-500/30 animate-pulse tracking-wider">
+                                            RESCUE DISPATCHED
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         )}

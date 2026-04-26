@@ -12,12 +12,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@emo-rescue/shared-types": "*",
     "@google/generative-ai": "^0.24.1",
+    "@opentelemetry/api": "^1.9.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "firebase-admin": "^13.8.0",
-    "@emo-rescue/shared-types": "*"
+    "firebase-admin": "^13.8.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
