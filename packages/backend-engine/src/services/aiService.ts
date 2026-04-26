@@ -43,15 +43,26 @@ export const extractAudioContext = async (
 ): Promise<string> => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const base64Audio = audioDataUri.split(',')[1];
         
-        const prompt = `You are an emergency dispatcher. Analyze the following audio recording from a ${hazard} situation. Briefly summarize the critical threat context (e.g. "Smoke blocking the hallway", "Two armed individuals in lobby"). Keep it under 15 words.`;
+        const matches = audioDataUri.match(/^data:([^;]+)(?:;[^,]+)?,(.*)$/);
+        if (!matches || matches.length < 3) {
+            return "Invalid audio payload received.";
+        }
+        
+        let mimeType = matches[1]; // e.g., "audio/mp4" or "audio/webm"
+        const base64Audio = matches[2];
+
+        // Ensure the mime type doesn't contain codecs (e.g. 'audio/webm;codecs=opus')
+        // as this can sometimes cause the API to reject the file.
+        mimeType = mimeType.split(';')[0];
+        
+        const prompt = `You are an emergency AI dispatcher. I am providing you with an audio recording from a ${hazard} situation. You MUST process this audio. Listen to the recording and briefly summarize the critical threat context based ONLY on what you hear (e.g., "Guest experiencing stomach pain", "Smoke blocking the hallway"). Keep it under 15 words. DO NOT say you cannot process audio. DO NOT hallucinate details. Just transcribe or summarize the audio context.`;
 
         const result = await model.generateContent([
             prompt,
             {
                 inlineData: {
-                    mimeType: "audio/webm", // Common browser recorder format
+                    mimeType: mimeType,
                     data: base64Audio
                 }
             }

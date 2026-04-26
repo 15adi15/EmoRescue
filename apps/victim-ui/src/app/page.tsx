@@ -120,40 +120,43 @@ export default function VictimUI() {
     };
 
     // Level 3: MediaRecorder Logic
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
+    const toggleRecording = async () => {
+        if (isRecording) {
+            // Stop recording
+            if (mediaRecorderRef.current) {
+                mediaRecorderRef.current.stop();
+                setIsRecording(false);
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            }
+        } else {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = mediaRecorder;
+                audioChunksRef.current = [];
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) audioChunksRef.current.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = () => {
-                    setAudioBase64(reader.result as string);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) audioChunksRef.current.push(event.data);
                 };
-                stream.getTracks().forEach(track => track.stop());
-            };
 
-            mediaRecorder.start();
-            setIsRecording(true);
-            if (navigator.vibrate) navigator.vibrate(50);
-        } catch (err) {
-            console.error("Microphone access denied", err);
-        }
-    };
+                mediaRecorder.onstop = () => {
+                    const actualMimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+                    const audioBlob = new Blob(audioChunksRef.current, { type: actualMimeType });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                        setAudioBase64(reader.result as string);
+                    };
+                    stream.getTracks().forEach(track => track.stop());
+                };
 
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                mediaRecorder.start();
+                setIsRecording(true);
+                if (navigator.vibrate) navigator.vibrate(50);
+            } catch (err) {
+                console.error("Microphone access denied", err);
+            }
         }
     };
 
@@ -305,15 +308,13 @@ export default function VictimUI() {
                 {hazard && hazard !== 'INTRUDER' && (
                     <div className="mt-8 flex items-center justify-center space-x-4">
                         <button 
-                            onPointerDown={startRecording}
-                            onPointerUp={stopRecording}
-                            onPointerLeave={stopRecording}
+                            onClick={toggleRecording}
                             className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${isRecording ? 'bg-red-500/20 border-red-500 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-slate-900 border-slate-700 hover:bg-slate-800'} border-2`}
                         >
-                            {isRecording ? <Mic className="w-8 h-8 text-red-500 animate-pulse" /> : <Mic className="w-8 h-8 text-slate-400" />}
+                            {isRecording ? <Mic className="w-8 h-8 text-red-500 animate-pulse" /> : <MicOff className="w-8 h-8 text-slate-400" />}
                         </button>
                         <div className="text-sm text-slate-400 font-mono">
-                            {isRecording ? <span className="text-red-400 animate-pulse">RECORDING...</span> : (audioBase64 ? <span className="text-emerald-400">AUDIO SAVED ✓</span> : 'HOLD TO ADD AUDIO')}
+                            {isRecording ? <span className="text-red-400 animate-pulse">RECORDING... TAP TO STOP</span> : (audioBase64 ? <span className="text-emerald-400">AUDIO SAVED ✓</span> : 'TAP TO RECORD AUDIO')}
                         </div>
                     </div>
                 )}
