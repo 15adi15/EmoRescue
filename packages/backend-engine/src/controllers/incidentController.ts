@@ -4,20 +4,22 @@ import { IngestionPayload, CrisisIncident, RoomInventory } from '@emo-rescue/sha
 import { generateSurvivalPlan, extractAudioContext } from '../services/aiService';
 import { calculateEvacuationRoute } from '../services/routingService';
 
-// Mock PMS Data representing the hotel's property management system
 const mockPmsData: Record<string, RoomInventory> = {
-    'Room_412': {
-        roomNumber: 'Room_412',
-        registeredGuest: 'John Doe',
-        hasMobilityIssues: false,
-        itemsInRoom: ['Heavy Desk', 'Fire Blanket', 'Towels', 'Water Bottles']
-    },
-    'Room_414': {
-        roomNumber: 'Room_414',
-        registeredGuest: 'Jane Smith',
-        hasMobilityIssues: true,
-        itemsInRoom: ['Wheelchair', 'Towels', 'Fire Extinguisher']
-    }
+    // Floor 1
+    'Room_111': { roomNumber: 'Room_111', registeredGuest: 'Alice A', hasMobilityIssues: false, itemsInRoom: ['Towels', 'Bottled Water'] },
+    'Room_112': { roomNumber: 'Room_112', registeredGuest: 'Bob B', hasMobilityIssues: true, itemsInRoom: ['Wheelchair', 'Fire Blanket'] },
+    'Room_113': { roomNumber: 'Room_113', registeredGuest: 'Charlie C', hasMobilityIssues: false, itemsInRoom: ['Towels'] },
+    // Floor 2
+    'Room_211': { roomNumber: 'Room_211', registeredGuest: 'Dave D', hasMobilityIssues: false, itemsInRoom: ['Towels', 'Fire Extinguisher'] },
+    'Room_212': { roomNumber: 'Room_212', registeredGuest: 'Eve E', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Bottled Water'] },
+    'Room_213': { roomNumber: 'Room_213', registeredGuest: 'Frank F', hasMobilityIssues: false, itemsInRoom: ['Towels'] },
+    // Floor 3
+    'Room_311': { roomNumber: 'Room_311', registeredGuest: 'Grace G', hasMobilityIssues: true, itemsInRoom: ['Towels', 'Walking Cane'] },
+    'Room_312': { roomNumber: 'Room_312', registeredGuest: 'Heidi H', hasMobilityIssues: false, itemsInRoom: ['Fire Blanket'] },
+    'Room_333': { roomNumber: 'Room_333', registeredGuest: 'Ivan I', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Towels'] },
+    // Floor 4 (Originals)
+    'Room_412': { roomNumber: 'Room_412', registeredGuest: 'John Doe', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Fire Blanket', 'Towels', 'Water Bottles'] },
+    'Room_414': { roomNumber: 'Room_414', registeredGuest: 'Jane Smith', hasMobilityIssues: true, itemsInRoom: ['Wheelchair', 'Towels', 'Fire Extinguisher'] }
 };
 
 export const createIncident = async (req: Request, res: Response) => {
@@ -70,6 +72,7 @@ export const createIncident = async (req: Request, res: Response) => {
             aiSurvivalPlan,
             safeEvacuationRoute,
             status: 'RECEIVED',
+            messages: [],
             createdAt: payload.timestamp || Date.now()
         };
 

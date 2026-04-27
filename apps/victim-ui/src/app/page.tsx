@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../lib/firebaseClient';
 import { HazardCategory, IngestionPayload, CrisisIncident } from '@emo-rescue/shared-types';
 import { Flame, Stethoscope, Skull, VolumeX, Volume2, ShieldAlert, Navigation, Mic, MicOff, CheckCircle } from 'lucide-react';
@@ -13,6 +13,7 @@ export default function VictimUI() {
     const [incidentData, setIncidentData] = useState<CrisisIncident | null>(null);
     const [isDarkened, setIsDarkened] = useState(false);
     const [audioMuted, setAudioMuted] = useState(false);
+    const [messageInput, setMessageInput] = useState('');
 
     // Audio Recording State
     const [isRecording, setIsRecording] = useState(false);
@@ -116,6 +117,23 @@ export default function VictimUI() {
             window.speechSynthesis.cancel();
         } else {
             speak("Screen normal. Audio active.");
+        }
+    };
+
+    const sendMessage = async () => {
+        if (!messageInput.trim() || !incidentData?.incidentId) return;
+        try {
+            await updateDoc(doc(db, 'incidents', incidentData.incidentId), {
+                messages: arrayUnion({
+                    id: Date.now().toString(),
+                    sender: 'VICTIM',
+                    text: messageInput.trim(),
+                    timestamp: Date.now()
+                })
+            });
+            setMessageInput('');
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -260,6 +278,43 @@ export default function VictimUI() {
                                         )}
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Level 4: Live Comms Chat */}
+                    {isDispatched && (
+                        <div className={`${isDarkened ? 'border-neutral-900' : 'bg-slate-900 border-slate-800 shadow-2xl'} border rounded-2xl p-6 flex flex-col h-80`}>
+                            <h2 className={`text-sm font-mono uppercase tracking-widest mb-4 flex items-center ${isDarkened ? 'text-neutral-800' : 'text-blue-400'}`}>
+                                <div className={`w-2 h-2 rounded-full mr-2 ${isDarkened ? 'bg-neutral-800' : 'bg-blue-500 animate-pulse'}`} />
+                                LIVE COMMS ESTABLISHED
+                            </h2>
+                            
+                            <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
+                                {incidentData.messages?.map((msg) => (
+                                    <div key={msg.id} className={`flex ${msg.sender === 'VICTIM' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[85%] p-3 rounded-xl ${msg.sender === 'VICTIM' ? (isDarkened ? 'bg-neutral-900 text-neutral-600' : 'bg-blue-600 text-white') : (isDarkened ? 'bg-black border border-neutral-800 text-neutral-500' : 'bg-slate-800 border border-slate-700 text-slate-200')}`}>
+                                            <p className="text-sm font-medium">{msg.text}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    value={messageInput}
+                                    onChange={(e) => setMessageInput(e.target.value)}
+                                    placeholder={isDarkened ? "..." : "Type message to Admin..."}
+                                    className={`flex-1 bg-transparent border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDarkened ? 'border-neutral-900 text-neutral-600 placeholder-neutral-800' : 'border-slate-700 text-white placeholder-slate-500 focus:border-slate-500 focus:bg-slate-800/50'}`}
+                                    onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                                />
+                                <button 
+                                    onClick={sendMessage} 
+                                    className={`px-6 py-3 rounded-xl font-bold transition-transform active:scale-95 ${isDarkened ? 'bg-neutral-900 text-neutral-700' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]'}`}
+                                >
+                                    SEND
+                                </button>
                             </div>
                         </div>
                     )}

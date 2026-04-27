@@ -21,6 +21,14 @@ export interface RoomInventory {
     itemsInRoom: string[]; // e.g., ["Heavy Desk", "Fire Blanket"]
 }
 
+// Real-time chat messages between admin and victim
+export interface ChatMessage {
+    id: string;
+    sender: 'ADMIN' | 'VICTIM';
+    text: string;
+    timestamp: number;
+}
+
 // What Node.js pushes to Firestore (and what the Admin Dashboard listens to)
 export interface CrisisIncident {
     incidentId: string; // Firestore Doc ID
@@ -31,5 +39,6 @@ export interface CrisisIncident {
     aiSurvivalPlan: string; // e.g., "1. Stay low. 2. Cover face with wet towel."
     safeEvacuationRoute: string[]; // Output from your BFS algorithm: ['Node_412', 'Node_Hallway_B', 'Node_Stairwell_B']
     status: IncidentStatus;
+    messages?: ChatMessage[]; // Real-time communication
     createdAt: number;
 }

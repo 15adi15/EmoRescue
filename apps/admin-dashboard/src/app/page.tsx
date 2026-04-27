@@ -1,19 +1,38 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../lib/firebaseClient';
 import { CrisisIncident } from '@emo-rescue/shared-types';
 import { AlertTriangle, Flame, Stethoscope, Skull, ShieldAlert, Activity, CheckCircle2 } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [incidents, setIncidents] = useState<CrisisIncident[]>([]);
+    const [chatInputs, setChatInputs] = useState<Record<string, string>>({});
 
     const handleDispatch = async (incidentId: string) => {
         try {
             await updateDoc(doc(db, 'incidents', incidentId), {
                 status: 'RESCUE_DISPATCHED'
             });
+        } catch (e) {
+            console.error(e);
+        }
+    };
+    
+    const handleSendMessage = async (incidentId: string) => {
+        const text = chatInputs[incidentId];
+        if (!text || !text.trim()) return;
+        try {
+            await updateDoc(doc(db, 'incidents', incidentId), {
+                messages: arrayUnion({
+                    id: Date.now().toString(),
+                    sender: 'ADMIN',
+                    text: text.trim(),
+                    timestamp: Date.now()
+                })
+            });
+            setChatInputs(prev => ({ ...prev, [incidentId]: '' }));
         } catch (e) {
             console.error(e);
         }
@@ -189,8 +208,43 @@ export default function AdminDashboard() {
                                             DISPATCH RESCUE
                                         </button>
                                     ) : (
-                                        <div className="mt-4 w-full bg-emerald-900/40 text-emerald-400 font-bold py-3 rounded-lg text-center border border-emerald-500/30 animate-pulse tracking-wider">
-                                            RESCUE DISPATCHED
+                                        <div className="mt-4 space-y-3">
+                                            <div className="w-full bg-emerald-900/40 text-emerald-400 font-bold py-2 rounded-lg text-center border border-emerald-500/30 animate-pulse tracking-wider text-sm">
+                                                RESCUE DISPATCHED
+                                            </div>
+                                            
+                                            {/* Live Chat */}
+                                            <div className="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                                                <p className="text-xs text-blue-400 mb-2 font-mono uppercase flex items-center">
+                                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse mr-2" />
+                                                    Live Comms
+                                                </p>
+                                                <div className="h-32 overflow-y-auto space-y-2 mb-3 pr-1 scrollbar-thin scrollbar-thumb-slate-700">
+                                                    {incident.messages?.map((msg) => (
+                                                        <div key={msg.id} className={`flex ${msg.sender === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[90%] p-2 rounded-md text-xs ${msg.sender === 'ADMIN' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200'}`}>
+                                                                {msg.text}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="text" 
+                                                        value={chatInputs[incident.incidentId] || ''}
+                                                        onChange={(e) => setChatInputs(prev => ({ ...prev, [incident.incidentId]: e.target.value }))}
+                                                        placeholder="Type instructions..." 
+                                                        className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(incident.incidentId)}
+                                                    />
+                                                    <button 
+                                                        onClick={() => handleSendMessage(incident.incidentId)} 
+                                                        className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-500 transition-colors"
+                                                    >
+                                                        SEND
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
