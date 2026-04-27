@@ -117,7 +117,7 @@ export default function AdminDashboard() {
                 )}
                 
                 {nodes.map(node => {
-                    const isHazard = incidents.some(inc => 
+                    const activeIncident = incidents.find(inc => 
                         // Simplified mock visualizer logic
                         inc.roomNumber === node.id || 
                         (inc.roomNumber === 'Room_412' && node.id === 'Hallway_West') || 
@@ -126,12 +126,28 @@ export default function AdminDashboard() {
                         (inc.roomNumber.startsWith('Room_2') && node.id === 'Hallway_2') ||
                         (inc.roomNumber.startsWith('Room_3') && node.id === 'Hallway_3')
                     );
-                    
+                    const isHazard = !!activeIncident;
                     const isEvacRoute = incidents.some(inc => inc.safeEvacuationRoute?.includes(node.id));
 
                     let bgClass = "bg-slate-800 border-slate-700 text-slate-400";
-                    if (isHazard) bgClass = "bg-red-950/80 border-red-500/50 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-pulse";
-                    else if (isEvacRoute) bgClass = "bg-emerald-900/40 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]";
+                    let icon = null;
+
+                    if (isHazard) {
+                        if (activeIncident.hazardCategory === 'MEDICAL') {
+                            bgClass = "bg-blue-950/80 border-blue-500/50 text-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.3)] animate-pulse";
+                            icon = <Stethoscope className="w-5 h-5 mt-2 text-blue-500" />;
+                        } else if (activeIncident.hazardCategory === 'INTRUDER') {
+                            bgClass = "bg-purple-950/80 border-purple-500/50 text-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.3)] animate-pulse";
+                            icon = <Skull className="w-5 h-5 mt-2 text-purple-500" />;
+                        } else {
+                            bgClass = "bg-red-950/80 border-red-500/50 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-pulse";
+                            icon = <Flame className="w-5 h-5 mt-2 text-red-500" />;
+                        }
+                    }
+                    else if (isEvacRoute) {
+                        bgClass = "bg-emerald-900/40 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]";
+                        icon = <CheckCircle2 className="w-4 h-4 mt-2 text-emerald-500" />;
+                    }
                     else if (node.type === 'EXIT') bgClass = "bg-emerald-950 border-emerald-800 text-emerald-500";
                     else if (node.type === 'LOBBY') bgClass = "bg-slate-800/80 border-slate-600 text-slate-300";
 
@@ -141,8 +157,7 @@ export default function AdminDashboard() {
                             className={`col-start-${node.x} row-start-${node.y} flex flex-col items-center justify-center rounded-lg border-2 transition-all duration-500 ${bgClass}`}
                         >
                             <span className="font-bold text-sm tracking-wider">{node.id.replace('_', ' ')}</span>
-                            {isHazard && <Flame className="w-5 h-5 mt-2 text-red-500" />}
-                            {isEvacRoute && <CheckCircle2 className="w-4 h-4 mt-2 text-emerald-500" />}
+                            {icon}
                         </div>
                     );
                 })}
