@@ -62,21 +62,52 @@ export default function AdminDashboard() {
         }
     };
 
+    const [selectedFloor, setSelectedFloor] = useState<number>(4);
+
     // A mock 2D grid map rendering function
     const renderHotelMap = () => {
-        // Rooms and Hallways mirroring our routingService graph
-        const nodes = [
-            { id: 'Room_410', x: 1, y: 1, type: 'ROOM' },
-            { id: 'Room_411', x: 2, y: 1, type: 'ROOM' },
-            { id: 'Room_412', x: 3, y: 1, type: 'ROOM' },
-            { id: 'Hallway_West', x: 2, y: 2, type: 'HALLWAY' },
-            { id: 'Stairwell_A', x: 1, y: 3, type: 'EXIT' },
-            { id: 'Lobby_Center', x: 3, y: 3, type: 'LOBBY' },
-            { id: 'Room_414', x: 4, y: 1, type: 'ROOM' },
-            { id: 'Room_415', x: 5, y: 1, type: 'ROOM' },
-            { id: 'Hallway_East', x: 4, y: 2, type: 'HALLWAY' },
-            { id: 'Stairwell_B', x: 5, y: 3, type: 'EXIT' },
-        ];
+        let nodes = [];
+        if (selectedFloor === 1) {
+            nodes = [
+                { id: 'Room_111', x: 1, y: 1, type: 'ROOM' },
+                { id: 'Room_112', x: 3, y: 1, type: 'ROOM' },
+                { id: 'Room_113', x: 5, y: 1, type: 'ROOM' },
+                { id: 'Hallway_1', x: 3, y: 2, type: 'HALLWAY' },
+                { id: 'Stairwell_A', x: 1, y: 3, type: 'EXIT' },
+                { id: 'Lobby', x: 3, y: 3, type: 'LOBBY' },
+                { id: 'Stairwell_B', x: 5, y: 3, type: 'EXIT' },
+            ];
+        } else if (selectedFloor === 2) {
+            nodes = [
+                { id: 'Room_211', x: 1, y: 1, type: 'ROOM' },
+                { id: 'Room_212', x: 3, y: 1, type: 'ROOM' },
+                { id: 'Room_213', x: 5, y: 1, type: 'ROOM' },
+                { id: 'Hallway_2', x: 3, y: 2, type: 'HALLWAY' },
+                { id: 'Stairwell_A', x: 1, y: 3, type: 'EXIT' },
+                { id: 'Stairwell_B', x: 5, y: 3, type: 'EXIT' },
+            ];
+        } else if (selectedFloor === 3) {
+            nodes = [
+                { id: 'Room_311', x: 1, y: 1, type: 'ROOM' },
+                { id: 'Room_312', x: 3, y: 1, type: 'ROOM' },
+                { id: 'Room_333', x: 5, y: 1, type: 'ROOM' },
+                { id: 'Hallway_3', x: 3, y: 2, type: 'HALLWAY' },
+                { id: 'Stairwell_A', x: 1, y: 3, type: 'EXIT' },
+                { id: 'Stairwell_B', x: 5, y: 3, type: 'EXIT' },
+            ];
+        } else {
+            nodes = [
+                { id: 'Room_410', x: 1, y: 1, type: 'ROOM' },
+                { id: 'Room_411', x: 2, y: 1, type: 'ROOM' },
+                { id: 'Room_412', x: 3, y: 1, type: 'ROOM' },
+                { id: 'Hallway_West', x: 2, y: 2, type: 'HALLWAY' },
+                { id: 'Stairwell_A', x: 1, y: 3, type: 'EXIT' },
+                { id: 'Room_414', x: 4, y: 1, type: 'ROOM' },
+                { id: 'Room_415', x: 5, y: 1, type: 'ROOM' },
+                { id: 'Hallway_East', x: 4, y: 2, type: 'HALLWAY' },
+                { id: 'Stairwell_B', x: 5, y: 3, type: 'EXIT' },
+            ];
+        }
 
         return (
             <div className="relative w-full h-[600px] bg-slate-900/50 rounded-xl border border-slate-700/50 p-8 grid grid-cols-5 grid-rows-3 gap-4 shadow-2xl overflow-hidden backdrop-blur-sm">
@@ -87,8 +118,13 @@ export default function AdminDashboard() {
                 
                 {nodes.map(node => {
                     const isHazard = incidents.some(inc => 
-                        // Simplified mock visualizer logic: highlight the room and its hallway
-                        inc.roomNumber === node.id || (inc.roomNumber === 'Room_412' && node.id === 'Hallway_West') || (inc.roomNumber === 'Room_414' && node.id === 'Hallway_East')
+                        // Simplified mock visualizer logic
+                        inc.roomNumber === node.id || 
+                        (inc.roomNumber === 'Room_412' && node.id === 'Hallway_West') || 
+                        (inc.roomNumber === 'Room_414' && node.id === 'Hallway_East') ||
+                        (inc.roomNumber.startsWith('Room_1') && node.id === 'Hallway_1') ||
+                        (inc.roomNumber.startsWith('Room_2') && node.id === 'Hallway_2') ||
+                        (inc.roomNumber.startsWith('Room_3') && node.id === 'Hallway_3')
                     );
                     
                     const isEvacRoute = incidents.some(inc => inc.safeEvacuationRoute?.includes(node.id));
@@ -142,7 +178,17 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-white flex items-center">
                             Tactical Floor Plan 
-                            <span className="ml-3 text-xs bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono border border-slate-700">FLOOR_04</span>
+                            <div className="ml-4 flex space-x-2">
+                                {[1, 2, 3, 4].map(f => (
+                                    <button 
+                                        key={f}
+                                        onClick={() => setSelectedFloor(f)}
+                                        className={`text-xs px-3 py-1 rounded font-mono border transition-colors ${selectedFloor === f ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}
+                                    >
+                                        FLOOR_0{f}
+                                    </button>
+                                ))}
+                            </div>
                         </h2>
                         <div className="flex space-x-4 text-xs font-mono">
                             <span className="flex items-center"><div className="w-3 h-3 rounded-full bg-red-500 mr-2 shadow-[0_0_10px_rgba(239,68,68,0.6)]"></div> Hazard Zone</span>
@@ -198,6 +244,24 @@ export default function AdminDashboard() {
                                             <p className="text-xs text-slate-500 mb-1 font-mono uppercase">Dispatched Protocol</p>
                                             <p className="font-medium text-amber-400">"{incident.aiSurvivalPlan}"</p>
                                         </div>
+
+                                        {incident.safeEvacuationRoute && incident.safeEvacuationRoute.length > 0 && (
+                                            <div className="bg-slate-950/50 p-3 rounded border border-slate-800">
+                                                <p className="text-xs text-emerald-500 mb-2 font-mono uppercase">Safe Route Identified</p>
+                                                <div className="flex flex-wrap gap-2 text-sm font-medium text-emerald-400">
+                                                    {incident.safeEvacuationRoute.map((node, i) => (
+                                                        <div key={node} className="flex items-center">
+                                                            <span className="bg-emerald-950/50 border border-emerald-800/50 px-2 py-1 rounded">
+                                                                {node.replace('_', ' ')}
+                                                            </span>
+                                                            {i < incident.safeEvacuationRoute.length - 1 && (
+                                                                <span className="mx-1 text-slate-500">→</span>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {incident.status !== 'RESCUE_DISPATCHED' ? (
@@ -215,10 +279,10 @@ export default function AdminDashboard() {
                                             
                                             {/* Live Chat */}
                                             <div className="bg-slate-950 rounded-lg p-3 border border-slate-800">
-                                                <p className="text-xs text-blue-400 mb-2 font-mono uppercase flex items-center">
+                                                <div className="text-xs text-blue-400 mb-2 font-mono uppercase flex items-center">
                                                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse mr-2" />
                                                     Live Comms
-                                                </p>
+                                                </div>
                                                 <div className="h-32 overflow-y-auto space-y-2 mb-3 pr-1 scrollbar-thin scrollbar-thumb-slate-700">
                                                     {incident.messages?.map((msg) => (
                                                         <div key={msg.id} className={`flex ${msg.sender === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>

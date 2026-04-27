@@ -8,17 +8,31 @@ export type Graph = Record<string, string[]>;
  * or GeoJSON representing the hotel's indoor graph.
  */
 export const mockHotelFloor: Graph = {
-    'Room_410': ['Hallway_West'],
-    'Room_411': ['Hallway_West'],
-    'Room_412': ['Hallway_West'],
-    'Room_414': ['Hallway_East'],
-    'Room_415': ['Hallway_East'],
-    'Hallway_West': ['Room_410', 'Room_411', 'Room_412', 'Stairwell_A', 'Lobby_Center'],
-    'Hallway_East': ['Room_414', 'Room_415', 'Stairwell_B', 'Lobby_Center'],
-    // Note: We deliberately exclude 'Main_Elevators' from Lobby_Center as they are disabled during fire alarms.
-    'Lobby_Center': ['Hallway_West', 'Hallway_East'], 
-    'Stairwell_A': ['Hallway_West', 'Safe_Zone_Outside'],
-    'Stairwell_B': ['Hallway_East', 'Safe_Zone_Outside'],
+    // FLOOR 1
+    'Room_111': ['Hallway_1_West'],
+    'Room_112': ['Hallway_1_West'],
+    'Room_113': ['Hallway_1_East'],
+    'Hallway_1_West': ['Room_111', 'Room_112', 'Stairwell_A', 'Lobby_Center', 'Hallway_1_East'],
+    'Hallway_1_East': ['Room_113', 'Stairwell_B', 'Lobby_Center', 'Hallway_1_West'],
+    
+    // FLOOR 2
+    'Room_211': ['Hallway_2_West'],
+    'Room_212': ['Hallway_2_West'],
+    'Room_213': ['Hallway_2_East'],
+    'Hallway_2_West': ['Room_211', 'Room_212', 'Stairwell_A', 'Hallway_2_East'],
+    'Hallway_2_East': ['Room_213', 'Stairwell_B', 'Hallway_2_West'],
+
+    // FLOOR 3
+    'Room_311': ['Hallway_3_West'],
+    'Room_312': ['Hallway_3_West'],
+    'Room_333': ['Hallway_3_East'],
+    'Hallway_3_West': ['Room_311', 'Room_312', 'Stairwell_A', 'Hallway_3_East'],
+    'Hallway_3_East': ['Room_333', 'Stairwell_B', 'Hallway_3_West'],
+
+    // EXITS & LOBBY
+    'Lobby_Center': ['Hallway_1_West', 'Hallway_1_East', 'Safe_Zone_Outside'], 
+    'Stairwell_A': ['Hallway_3_West', 'Hallway_2_West', 'Hallway_1_West', 'Safe_Zone_Outside'],
+    'Stairwell_B': ['Hallway_3_East', 'Hallway_2_East', 'Hallway_1_East', 'Safe_Zone_Outside'],
     'Safe_Zone_Outside': [] // The ultimate safe destination
 };
 

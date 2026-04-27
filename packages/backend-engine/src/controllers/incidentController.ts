@@ -16,10 +16,7 @@ const mockPmsData: Record<string, RoomInventory> = {
     // Floor 3
     'Room_311': { roomNumber: 'Room_311', registeredGuest: 'Grace G', hasMobilityIssues: true, itemsInRoom: ['Towels', 'Walking Cane'] },
     'Room_312': { roomNumber: 'Room_312', registeredGuest: 'Heidi H', hasMobilityIssues: false, itemsInRoom: ['Fire Blanket'] },
-    'Room_333': { roomNumber: 'Room_333', registeredGuest: 'Ivan I', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Towels'] },
-    // Floor 4 (Originals)
-    'Room_412': { roomNumber: 'Room_412', registeredGuest: 'John Doe', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Fire Blanket', 'Towels', 'Water Bottles'] },
-    'Room_414': { roomNumber: 'Room_414', registeredGuest: 'Jane Smith', hasMobilityIssues: true, itemsInRoom: ['Wheelchair', 'Towels', 'Fire Extinguisher'] }
+    'Room_333': { roomNumber: 'Room_333', registeredGuest: 'Ivan I', hasMobilityIssues: false, itemsInRoom: ['Heavy Desk', 'Towels'] }
 };
 
 export const createIncident = async (req: Request, res: Response) => {
@@ -36,9 +33,9 @@ export const createIncident = async (req: Request, res: Response) => {
         };
 
         // 2. Determine Hazard Location (Mocking this for the hackathon prototype)
-        // Let's pretend if they are in 412, the hazard is blocking Hallway_West.
-        // Otherwise, it's blocking Hallway_East.
-        const hazardNode = payload.roomNumber === 'Room_412' ? 'Hallway_West' : 'Hallway_East';
+        // If Room is on West wing (e.g. Room_111, Room_212), hazard is Stairwell_A (forces routing to East wing / Stairwell B).
+        // If Room is on East wing (e.g. Room_333), hazard is Stairwell_B (forces routing to West wing / Stairwell A).
+        const hazardNode = payload.roomNumber.match(/[12]$/) ? 'Stairwell_A' : 'Stairwell_B';
 
         // 3. AI Extraction
         let aiTranslatedContext = `Raw threat detected: ${payload.hazardCategory} reported near ${payload.roomNumber}. Possible obstruction at ${hazardNode}.`;

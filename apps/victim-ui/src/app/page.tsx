@@ -22,9 +22,9 @@ export default function VictimUI() {
     const audioChunksRef = useRef<Blob[]>([]);
 
     useEffect(() => {
-        // Parse URL parameters for QR code ingestion (e.g. ?room=Room_412)
+        // Parse URL parameters for QR code ingestion (e.g. ?room=Room_111)
         const params = new URLSearchParams(window.location.search);
-        const room = params.get('room') || 'Room_412';
+        const room = params.get('room') || 'Room_111';
         setRoomNumber(room);
     }, []);
 

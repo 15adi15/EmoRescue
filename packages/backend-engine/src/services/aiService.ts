@@ -44,15 +44,17 @@ export const extractAudioContext = async (
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         
-        const matches = audioDataUri.match(/^data:([^;]+)(?:;[^,]+)?,(.*)$/);
-        if (!matches || matches.length < 3) {
+        const parts = audioDataUri.split(',');
+        if (parts.length !== 2) {
             return "Invalid audio payload received.";
         }
         
-        let mimeType = matches[1]; // e.g., "audio/mp4" or "audio/webm"
-        const base64Audio = matches[2];
+        const header = parts[0]; // e.g. "data:audio/webm;codecs=opus;base64"
+        const base64Audio = parts[1];
 
-        // Ensure the mime type doesn't contain codecs (e.g. 'audio/webm;codecs=opus')
+        // Extract clean mimeType from header (e.g. "audio/webm")
+        const mimeMatch = header.match(/^data:([^;]+)/);
+        let mimeType = mimeMatch ? mimeMatch[1] : "audio/webm";
         // as this can sometimes cause the API to reject the file.
         mimeType = mimeType.split(';')[0];
         
