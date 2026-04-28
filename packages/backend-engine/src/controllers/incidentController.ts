@@ -119,13 +119,16 @@ export const sendMessage = async (req: Request, res: Response) => {
         }
 
         // 3. Construct Message Payload
-        const newMessage: ChatMessage = {
+        const newMessage: any = {
             id: Date.now().toString(),
             sender,
             text,
-            translatedText: translatedText !== text ? translatedText : undefined,
             timestamp: Date.now()
         };
+
+        if (translatedText !== text && translatedText) {
+            newMessage.translatedText = translatedText;
+        }
 
         // 4. Update Firestore
         await incidentRef.update({

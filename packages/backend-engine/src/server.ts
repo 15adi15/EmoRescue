@@ -10,10 +10,19 @@ dotenv.config();
 
 // Initialize Firebase Admin (We will add the credentials via .env in a moment)
 // For now, it will look for the GOOGLE_APPLICATION_CREDENTIALS env var
+// Replace your current admin.initializeApp block with this:
 if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault()
-    });
+    let credential;
+    // If on Vercel, read the JSON from the environment variable
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        credential = admin.credential.cert(serviceAccount);
+    } else {
+        // If local, use the .env file path
+        credential = admin.credential.applicationDefault();
+    }
+
+    admin.initializeApp({ credential });
 }
 
 export const db = admin.firestore();
@@ -36,6 +45,11 @@ app.post('/api/chat', sendMessage);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Crisis Command Engine running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Crisis Command Engine running on port ${PORT}`);
+    });
+}
+
+// Vercel requires the app to be exported!
+export default app;
