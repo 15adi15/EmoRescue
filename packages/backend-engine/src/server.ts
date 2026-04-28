@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
-import { createIncident } from './controllers/incidentController';
+import { createIncident, sendMessage } from './controllers/incidentController';
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +30,9 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Crisis Ingestion Route
 app.post('/api/incident', createIncident);
+
+// Chat Message with Translation Route
+app.post('/api/chat', sendMessage);
 
 const PORT = process.env.PORT || 5000;
 

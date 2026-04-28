@@ -24,12 +24,13 @@ export default function AdminDashboard() {
         const text = chatInputs[incidentId];
         if (!text || !text.trim()) return;
         try {
-            await updateDoc(doc(db, 'incidents', incidentId), {
-                messages: arrayUnion({
-                    id: Date.now().toString(),
+            await fetch('http://localhost:5555/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    incidentId,
                     sender: 'ADMIN',
-                    text: text.trim(),
-                    timestamp: Date.now()
+                    text: text.trim()
                 })
             });
             setChatInputs(prev => ({ ...prev, [incidentId]: '' }));
@@ -302,7 +303,7 @@ export default function AdminDashboard() {
                                                     {incident.messages?.map((msg) => (
                                                         <div key={msg.id} className={`flex ${msg.sender === 'ADMIN' ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={`max-w-[90%] p-2 rounded-md text-xs ${msg.sender === 'ADMIN' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200'}`}>
-                                                                {msg.text}
+                                                                {msg.sender === 'VICTIM' ? (msg.translatedText || msg.text) : msg.text}
                                                             </div>
                                                         </div>
                                                     ))}

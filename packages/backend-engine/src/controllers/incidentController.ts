@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { db } from '../server';
-import { IngestionPayload, CrisisIncident, RoomInventory } from '@emo-rescue/shared-types';
-import { generateSurvivalPlan, extractAudioContext } from '../services/aiService';
+import * as admin from 'firebase-admin';
+import { IngestionPayload, CrisisIncident, RoomInventory, ChatMessage } from '@emo-rescue/shared-types';
+import { generateSurvivalPlan, extractAudioContext, translateMessage } from '../services/aiService';
 import { calculateEvacuationRoute } from '../services/routingService';
 
 const mockPmsData: Record<string, RoomInventory> = {
@@ -70,6 +71,7 @@ export const createIncident = async (req: Request, res: Response) => {
             safeEvacuationRoute,
             status: 'RECEIVED',
             messages: [],
+            victimLanguage: payload.language || 'en',
             createdAt: payload.timestamp || Date.now()
         };
 
@@ -86,5 +88,53 @@ export const createIncident = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error creating incident:", error);
         res.status(500).json({ success: false, error: 'Failed to orchestrate emergency response.' });
+    }
+};
+
+export const sendMessage = async (req: Request, res: Response) => {
+    try {
+        const { incidentId, sender, text } = req.body;
+        
+        // 1. Fetch incident from Firestore to get the victim's language
+        const incidentRef = db.collection('incidents').doc(incidentId);
+        const docSnap = await incidentRef.get();
+        
+        if (!docSnap.exists) {
+            return res.status(404).json({ success: false, error: 'Incident not found' });
+        }
+        
+        const incidentData = docSnap.data() as CrisisIncident;
+        const victimLanguage = incidentData.victimLanguage || 'en';
+
+        // 2. Determine translation
+        let translatedText = text;
+        
+        if (victimLanguage !== 'en') {
+            // If sender is ADMIN, source is English, target is Victim Language
+            // If sender is VICTIM, source is Victim Language, target is English
+            const sourceLang = sender === 'ADMIN' ? 'en' : victimLanguage;
+            const targetLang = sender === 'ADMIN' ? victimLanguage : 'en';
+            
+            translatedText = await translateMessage(text, sourceLang, targetLang);
+        }
+
+        // 3. Construct Message Payload
+        const newMessage: ChatMessage = {
+            id: Date.now().toString(),
+            sender,
+            text,
+            translatedText: translatedText !== text ? translatedText : undefined,
+            timestamp: Date.now()
+        };
+
+        // 4. Update Firestore
+        await incidentRef.update({
+            messages: admin.firestore.FieldValue.arrayUnion(newMessage)
+        });
+
+        res.status(200).json({ success: true, message: newMessage });
+    } catch (error) {
+        console.error("Error sending message:", error);
+        res.status(500).json({ success: false, error: 'Failed to send message.' });
     }
 };

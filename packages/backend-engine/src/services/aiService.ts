@@ -73,7 +73,23 @@ export const extractAudioContext = async (
         const response = await result.response;
         return response.text().trim();
     } catch (error) {
-        console.error("Audio Translation Error:", error);
-        return "Audio unintelligible or unavailable.";
+        console.error("AI Context Generation Failed:", error);
+        return "Critical context generation failed. Immediate response required.";
+    }
+};
+
+export const translateMessage = async (
+    text: string, 
+    sourceLang: string, 
+    targetLang: string
+): Promise<string> => {
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const prompt = `Translate the following emergency communication message from ${sourceLang} to ${targetLang}. Only return the translated text directly. Do not include quotes, markdown, or any conversational filler. Message: "${text}"`;
+        const result = await model.generateContent(prompt);
+        return result.response.text().trim();
+    } catch (e) {
+        console.error("AI Translation Failed:", e);
+        return text; // Fallback to original text if translation fails
     }
 };

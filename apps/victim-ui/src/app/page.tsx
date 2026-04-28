@@ -282,7 +282,8 @@ export default function VictimUI() {
             hazardCategory: hazard,
             guestConfirmedIdentity: true,
             timestamp: Date.now(),
-            audioBlobUrl: audioBase64 || undefined
+            audioBlobUrl: audioBase64 || undefined,
+            language: lang
         };
 
         try {
@@ -319,12 +320,13 @@ export default function VictimUI() {
     const sendMessage = async () => {
         if (!messageInput.trim() || !incidentData?.incidentId) return;
         try {
-            await updateDoc(doc(db, 'incidents', incidentData.incidentId), {
-                messages: arrayUnion({
-                    id: Date.now().toString(),
+            await fetch('http://localhost:5555/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    incidentId: incidentData.incidentId,
                     sender: 'VICTIM',
-                    text: messageInput.trim(),
-                    timestamp: Date.now()
+                    text: messageInput.trim()
                 })
             });
             setMessageInput('');
@@ -495,7 +497,9 @@ export default function VictimUI() {
                                 {incidentData.messages?.map((msg) => (
                                     <div key={msg.id} className={`flex ${msg.sender === 'VICTIM' ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[85%] p-3 rounded-xl ${msg.sender === 'VICTIM' ? (isDarkened ? 'bg-neutral-900 text-neutral-600' : 'bg-blue-600 text-white') : (isDarkened ? 'bg-black border border-neutral-800 text-neutral-500' : 'bg-slate-800 border border-slate-700 text-slate-200')}`}>
-                                            <p className="text-sm font-medium">{msg.text}</p>
+                                            <p className="text-sm font-medium">
+                                                {msg.sender === 'ADMIN' ? (msg.translatedText || msg.text) : msg.text}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}

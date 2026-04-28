@@ -11,6 +11,7 @@ export interface IngestionPayload {
     audioBlobUrl?: string; // Captured via MediaRecorder API
     guestConfirmedIdentity: boolean;
     timestamp: number;
+    language?: string;
 }
 
 // The Mock PMS Data Structure
@@ -26,6 +27,7 @@ export interface ChatMessage {
     id: string;
     sender: 'ADMIN' | 'VICTIM';
     text: string;
+    translatedText?: string;
     timestamp: number;
 }
 
@@ -40,5 +42,6 @@ export interface CrisisIncident {
     safeEvacuationRoute: string[]; // Output from your BFS algorithm: ['Node_412', 'Node_Hallway_B', 'Node_Stairwell_B']
     status: IncidentStatus;
     messages?: ChatMessage[]; // Real-time communication
+    victimLanguage?: string;
     createdAt: number;
 }
