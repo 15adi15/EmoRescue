@@ -33,6 +33,14 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Health Check Route
+app.get('/', (req: Request, res: Response) => {
+    res.status(200).json({ 
+        name: "EmoRescue Crisis Command Engine",
+        status: "Online",
+        version: "1.0.0"
+    });
+});
+
 app.get('/api/health', (req: Request, res: Response) => {
     res.status(200).json({ status: 'ok', message: 'EmoRescue Crisis Engine is Online.' });
 });
