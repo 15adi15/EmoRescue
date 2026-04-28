@@ -287,7 +287,7 @@ export default function VictimUI() {
         };
 
         try {
-            const res = await fetch('http://localhost:5555/api/incident', {
+            const res = await fetch('https://emo-rescue-backend-engine.vercel.app/api/incident', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -320,7 +320,7 @@ export default function VictimUI() {
     const sendMessage = async () => {
         if (!messageInput.trim() || !incidentData?.incidentId) return;
         try {
-            await fetch('http://localhost:5555/api/chat', {
+            await fetch('https://emo-rescue-backend-engine.vercel.app/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

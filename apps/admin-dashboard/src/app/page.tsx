@@ -24,7 +24,7 @@ export default function AdminDashboard() {
         const text = chatInputs[incidentId];
         if (!text || !text.trim()) return;
         try {
-            await fetch('http://localhost:5555/api/chat', {
+            await fetch('https://emo-rescue-backend-engine.vercel.app/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
